@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tres en Raya</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .board {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 2px;
+    border: 5px solid #333;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+  }
+  .cell {
+    width: calc(100% - 4px); /* Considerar el borde */
+    height: calc(100% - 4px); /* Considerar el borde */
+    border: 2px solid transparent; /* Borde transparente para que el efecto de neón sea visible */
+    box-shadow: 0 0 5px #FFFFFF, 0 0 10px #FFFFFF, 0 0 15px #FFFFFF, 0 0 20px #FFFFFF; /* Efecto de neón */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+    cursor: pointer;
+    background-color: #eee;
+    color: #333;
+    transition: background-color 0.3s;
+    position: relative;
+  }
+  .cell:hover {
+    background-color: #ddd;
+  }
+  .cell.X {
+    color: #FF4500; /* Rojo */
+  }
+  .cell.O {
+    color: #000; /* Negro */
+  }
+  .winner {
+    animation: winnerAnimation 1s ease forwards;
+  }
+  @keyframes winnerAnimation {
+    0% {
+      font-size: 3em;
+    }
+    50% {
+      font-size: 4em;
+    }
+    100% {
+      font-size: 3em;
+      opacity: 0;
+    }
+  }
+  .reset-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    border: 2px solid #333;
+    border-radius: 5px;
+    background-color: #FF4500;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    position: absolute;
+    top: calc(100% + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .reset-button:hover {
+    background-color: #FF6347;
+  }
+  .message {
+    position: absolute;
+    top: calc(50% - 50px);
+    left: calc(50% - 100px);
+    padding: 20px;
+    background-color: #fff;
+    border: 5px solid #333;
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+    color: #FF4500;
+  }
+</style>
+</head>
+<body>
+
+<div class="board" onclick="handleMove(event)">
+  <div class="cell" id="0"></div>
+  <div class="cell" id="1"></div>
+  <div class="cell" id="2"></div>
+  <div class="cell" id="3"></div>
+  <div class="cell" id="4"></div>
+  <div class="cell" id="5"></div>
+  <div class="cell" id="6"></div>
+  <div class="cell" id="7"></div>
+  <div class="cell" id="8"></div>
+</div>
+
+<button class="reset-button" onclick="resetGame()">Reiniciar juego</button>
+
+<div id="message" class="message"></div>
+
+<script>
+  let currentPlayer = 'X';
+  let cells = document.querySelectorAll('.cell');
+  let gameOver = false;
+
+  function handleMove(event) {
+    if (gameOver) return;
+
+    const cell = event.target;
+    const cellIndex = parseInt(cell.id);
+
+    if (cell.textContent === '' && !gameOver) {
+      cell.textContent = currentPlayer;
+      cell.classList.add(currentPlayer);
+      checkWinner();
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    }
+  }
+
+  function checkWinner() {
+    const winningCombos = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
+    ];
+
+    for (let combo of winningCombos) {
+      const [a, b, c] = combo;
+      if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[a].textContent === cells[c].textContent) {
+        gameOver = true;
+        cells[a].classList.add('winner');
+        cells[b].classList.add('winner');
+        cells[c].classList.add('winner');
+        showMessage(`${cells[a].textContent} gana!`, () => resetGame());
+        return;
+      }
+    }
+
+    if ([...cells].every(cell => cell.textContent !== '')) {
+      gameOver = true;
+      showMessage('¡Empate!', () => resetGame());
+    }
+  }
+
+  function resetGame() {
+    cells.forEach(cell => {
+      cell.textContent = '';
+      cell.classList.remove('winner', 'X', 'O');
+    });
+    currentPlayer = 'X';
+    gameOver = false;
+  }
+
+  function showMessage(message, callback) {
+    const messageElement = document.getElementById('message');
+    messageElement.textContent = message;
+    messageElement.style.display = 'block';
+    const randomX = Math.random() * (window.innerWidth - messageElement.offsetWidth);
+    const randomY = Math.random() * (window.innerHeight - messageElement.offsetHeight);
+    messageElement.style.left = `${randomX}px`;
+    messageElement.style.top = `${randomY}px`;
+    setTimeout(() => {
+      messageElement.style.display = 'none';
+      if (callback) callback();
+    }, 1500);
+  }
+</script>
+
+</body>
+</html>
